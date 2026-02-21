@@ -10,12 +10,10 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     // Serve arquivos estáticos de /public (na raiz do projeto)
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api*'], // se você usar prefixo /api (veja main.ts). Ajuste se não usar
-    }),
-    UsersModule,
-    AuthModule,
-  ],
+  rootPath: join(__dirname, '..', 'public'),
+  serveRoot: '/public',
+  exclude: ['/api*'],
+}), ],
   controllers: [AppController],
 })
 export class AppModule {}
