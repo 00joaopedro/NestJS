@@ -2,31 +2,35 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>JWT httpOnly + Roles Demo</title>
+  <title>Supabase Auth + Cookie httpOnly + Roles Demo</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 900px; margin: 24px auto; }
     .box { border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 6px; }
-    input, select { padding: 8px; margin: 6px 0; width: 100%; box-sizing: border-box; }
+    input { padding: 8px; margin: 6px 0; width: 100%; box-sizing: border-box; }
     button { padding: 8px 12px; margin-right: 6px; }
     pre { background: #f7f7f7; padding: 12px; overflow: auto; }
   </style>
 </head>
 <body>
-  <h1>JWT httpOnly + Roles Demo</h1>
+  <h1>Supabase Auth + Cookie httpOnly + Roles Demo</h1>
 
   <div class="box">
-    <h3>Login</h3>
-    <label>Usuario (use: admin, vendedor, comprador)</label>
-    <input id="username" value="admin" />
-    <label>Senha (password123)</label>
-    <input id="password" type="password" value="password123" />
+    <h3>Cadastro / Login</h3>
+
+    <label>Email</label>
+    <input id="email" value="" placeholder="email@exemplo.com" />
+
+    <label>Senha</label>
+    <input id="password" type="password" value="" placeholder="min 6 caracteres" />
+
+    <button id="registerBtn">Cadastrar</button>
     <button id="loginBtn">Login</button>
     <button id="logoutBtn">Logout</button>
   </div>
 
   <div class="box">
     <h3>Chamadas</h3>
-    <button data-endpoint="/public" class="callBtn">Public</button>
+    <button data-endpoint="/health" class="callBtn">Health</button>
     <button data-endpoint="/auth/profile" class="callBtn">Profile (autenticado)</button>
     <button data-endpoint="/users" class="callBtn">Users (Admin only)</button>
   </div>
@@ -37,23 +41,43 @@
   </div>
 
   <script>
-    const API = 'http://localhost:3000'
+    // Use relativo para funcionar no Railway/Render e no localhost
+    // Se estiver abrindo esse HTML fora do backend, aí sim coloque URL absoluta.
+    const API = ''
     const output = document.getElementById('output')
 
     function show(obj) {
       output.textContent = JSON.stringify(obj, null, 2)
     }
 
+    async function safeJson(res) {
+      const text = await res.text()
+      try { return JSON.parse(text) } catch { return text }
+    }
+
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+      const res = await fetch(API + '/auth/register', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      const data = await safeJson(res)
+      show({ status: res.status, data })
+    })
+
     document.getElementById('loginBtn').addEventListener('click', async () => {
-      const username = document.getElementById('username').value
+      const email = document.getElementById('email').value.trim()
       const password = document.getElementById('password').value
       const res = await fetch(API + '/auth/login', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
       })
-      const data = await res.json()
+      const data = await safeJson(res)
       show({ status: res.status, data })
     })
 
@@ -62,7 +86,7 @@
         method: 'POST',
         credentials: 'include'
       })
-      const data = await res.json()
+      const data = await safeJson(res)
       show({ status: res.status, data })
     })
 
@@ -73,10 +97,8 @@
           method: 'GET',
           credentials: 'include'
         })
-        const text = await res.text()
-        let parsed
-        try { parsed = JSON.parse(text) } catch(e) { parsed = text }
-        show({ status: res.status, body: parsed })
+        const data = await safeJson(res)
+        show({ status: res.status, body: data })
       })
     })
   </script>
