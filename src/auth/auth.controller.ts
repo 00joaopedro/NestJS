@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards, BadRequestException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { SupabaseService } from '../supabase/supabase.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -9,17 +9,23 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: { email: string; password: string }) {
-    const { email, password } = body;
+    const email = body?.email?.trim();
+    const password = body?.password;
+
+    if (!email || !password) throw new BadRequestException('email and password are required');
 
     const { data, error } = await this.supabase.anon.auth.signUp({ email, password });
     if (error) return { ok: false, error: error.message };
 
-    // Se você criou trigger, o profile será criado sozinho.
-    // Se não criou trigger, você pode criar aqui com admin:
+    // Se você não tiver trigger no Supabase para criar profile, isso garante o profile:
     if (data.user) {
-      await this.supabase.admin
+      const { error: upsertError } = await this.supabase.admin
         .from('profiles')
         .upsert({ id: data.user.id, email: data.user.email, role: 'Comprador' });
+
+      if (upsertError) {
+        return { ok: false, error: `Profile upsert failed: ${upsertError.message}` };
+      }
     }
 
     return { ok: true, user: data.user };
@@ -30,7 +36,10 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { email, password } = body;
+    const email = body?.email?.trim();
+    const password = body?.password;
+
+    if (!email || !password) throw new BadRequestException('email and password are required');
 
     const { data, error } = await this.supabase.anon.auth.signInWithPassword({ email, password });
     if (error) return { ok: false, error: error.message };
@@ -43,9 +52,10 @@ export class AuthController {
     res.cookie('jwt', accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'lax' : 'lax',
+      sameSite: 'lax',
       path: '/',
-      // você pode ajustar maxAge; o JWT expira pelo Supabase
+      // Opcional: alinhar com expiração do token (em segundos)
+      // maxAge: (data.session?.expires_in ?? 3600) * 1000,
     });
 
     return { ok: true };
@@ -53,6 +63,7 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
+    // Para o seu app, basta apagar o cookie (o token fica inválido localmente).
     res.clearCookie('jwt', { path: '/' });
     return { ok: true };
   }
@@ -60,6 +71,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   profile(@Req() req: Request) {
-    return req.user;
+    return { ok: true, user: req.user };
   }
 }
