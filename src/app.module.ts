@@ -5,21 +5,22 @@ import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
   imports: [
-    // Serve o frontend em /public (ex.: /public/index.html)
+    // Frontend em /public (ex.: /public/index.html)
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/public',
-      // Se você NÃO usa app.setGlobalPrefix('api'), pode remover esse exclude.
-      exclude: ['/api*'],
+      exclude: ['/api*'], // remova se você não usa prefixo /api
     }),
 
-    UsersModule,
+    SupabaseModule,
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
