@@ -1,28 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { Request } from 'express';
-import { UsersService } from '../users/users.service';
+import { Strategy } from 'passport-jwt';
+import type { Request } from 'express';
+import jwt from 'jsonwebtoken';
+import { SupabaseService } from '../supabase/supabase.service';
 
-const cookieExtractor = (req: Request) => {
-  let token = null;
-  if (req && req.cookies) token = req.cookies['jwt'];
-  return token;
-};
+function cookieExtractor(req: Request): string | null {
+  return req?.cookies?.jwt ?? null;
+}
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(private usersService: UsersService) {
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly supabase: SupabaseService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'VERY_SECRET_DEMO_KEY',
+      secretOrKey: process.env.SUPABASE_JWT_SECRET,
     });
+
+    if (!process.env.SUPABASE_JWT_SECRET) {
+      throw new Error('Missing SUPABASE_JWT_SECRET env var.');
+    }
   }
 
   async validate(payload: any) {
-    const user = await this.usersService.findById(payload.sub);
-    if (!user) return null;
-    return { id: user.id, username: user.username, roles: user.roles, name: user.name };
+    // payload.sub = userId no Supabase
+    const userId = payload?.sub;
+    if (!userId) throw new UnauthorizedException('Invalid token payload.');
+
+    // busca role no profiles usando service role (backend)
+    const { data, error } = await this.supabase.admin
+      .from('profiles')
+      .select('id,email,role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      // se não tiver profile, considera sem role (ou bloqueia)
+      throw new UnauthorizedException('User profile not found.');
+    }
+
+    return {
+      id: data.id,
+      email: data.email,
+      roles: [data.role], // mantém compatível com seu RolesGuard
+    };
   }
 }
