@@ -6,10 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
-  imports: [
-    SupabaseModule,
-    PassportModule,
-  ],
+  imports: [SupabaseModule, PassportModule],
   providers: [JwtStrategy],
   controllers: [AuthController],
 })
