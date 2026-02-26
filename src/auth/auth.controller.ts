@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards, BadRequestException } from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Post, Req, Res, UseGuards,} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { SupabaseService } from '../supabase/supabase.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -54,7 +54,7 @@ export class AuthController {
       secure: isProd,
       sameSite: 'lax',
       path: '/',
-      // Opcional: alinhar com expiração do token (em segundos)
+      // maxAge opcional:
       // maxAge: (data.session?.expires_in ?? 3600) * 1000,
     });
 
@@ -63,7 +63,6 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
-    // Para o seu app, basta apagar o cookie (o token fica inválido localmente).
     res.clearCookie('jwt', { path: '/' });
     return { ok: true };
   }
