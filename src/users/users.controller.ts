@@ -12,7 +12,6 @@ export class UsersController {
   @Get()
   @Roles('Admin')
   async listAll() {
-    // Lista usuários a partir da tabela profiles (mais simples e seguro do que listar auth.users)
     const { data, error } = await this.supabase.admin
       .from('profiles')
       .select('id, email, role, created_at')
