@@ -1,19 +1,25 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import cookieParser = require('cookie-parser');
+import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
-  app.use(cookieParser());
-
-  // Para testes: libera qualquer origin. Em produção, restrinja ao seu domínio.
-  app.enableCors({ origin: true, credentials: true });
-
-  // opcional: app.setGlobalPrefix('api')
-
-  const port = Number(process.env.PORT) || 3000;
-  await app.listen(port, '0.0.0.0');
-  console.log(`Listening on ${port}`);
-}
-bootstrap();
+@Module({
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public',
+      exclude: ['/api*'],
+    }),
+    SupabaseModule,
+    AuthModule,
+    UsersModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
