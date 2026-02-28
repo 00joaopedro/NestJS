@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  Admin
+  Vendedor
+  Comprador
+}
+
+model Profile {
+  id        String   @id @db.Uuid
+  email     String?  @unique
+  role      Role     @default(Comprador)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("profiles")
+}

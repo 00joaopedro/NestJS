@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "moduleResolution": "node",
     "module": "commonjs",
+=======
+    "module": "commonjs",
+    "moduleResolution": "node",
+>>>>>>> e2c76cf (Integrate Prisma and Supabase auth)
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
