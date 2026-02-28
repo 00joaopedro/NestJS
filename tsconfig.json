@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
-    "moduleResolution": "node",
-    "module": "commonjs",
-=======
     "module": "commonjs",
     "moduleResolution": "node",
->>>>>>> e2c76cf (Integrate Prisma and Supabase auth)
-    "esModuleInterop": true,
-    "isolatedModules": true,
+    "target": "ES2023",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",

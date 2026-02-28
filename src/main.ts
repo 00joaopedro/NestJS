@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // Para seu caso atual, pode manter. Em produção, depois você restringe origins.
+  // Para testes: libera qualquer origin. Em produção, restrinja ao seu domínio.
   app.enableCors({ origin: true, credentials: true });
 
   // opcional: app.setGlobalPrefix('api')
