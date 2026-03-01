@@ -12,9 +12,7 @@ function cookieExtractor(req: Request): string | null {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly supabase: SupabaseService) {
     const secret = process.env.SUPABASE_JWT_SECRET;
-    if (!secret) {
-      throw new Error('Missing SUPABASE_JWT_SECRET env var.');
-    }
+    if (!secret) throw new Error('Missing SUPABASE_JWT_SECRET env var.');
 
     super({
       jwtFromRequest: cookieExtractor,
@@ -33,14 +31,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       .eq('id', userId)
       .maybeSingle();
 
-    if (error || !data) {
-      throw new UnauthorizedException('User profile not found.');
-    }
+    if (error || !data) throw new UnauthorizedException('User profile not found.');
 
-    return {
-      id: data.id,
-      email: data.email,
-      roles: [data.role],
-    };
+    return { id: data.id, email: data.email, roles: [data.role] };
   }
 }
