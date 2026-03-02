@@ -14,7 +14,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/public',
-      exclude: ['/api*'],
+      exclude: ['/api/(.*)'],
     }),
     PrismaModule,
     SupabaseModule,
