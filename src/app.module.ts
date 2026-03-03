@@ -1,27 +1,25 @@
-import { Module } from '@nestjs/common';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { SupabaseModule } from './supabase/supabase.module';
-import { PrismaModule } from './prisma/prisma.module';
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-@Module({
-  imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/public',
-      exclude: ['/api/(.*)'],
-    }),
-    PrismaModule,
-    SupabaseModule,
-    AuthModule,
-    UsersModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
-})
-export class AppModule {}
+  app.use(cookieParser());
+
+  // ✅ em produção, melhor definir explicitamente o origin (ou uma lista)
+  const corsOrigin = process.env.CORS_ORIGIN || true;
+
+  app.enableCors({
+    origin: corsOrigin === 'true' ? true : corsOrigin,
+    credentials: true,
+  });
+
+  const port = Number(process.env.PORT) || 3000;
+  await app.listen(port, '0.0.0.0');
+
+  console.log(`Listening on ${port}`);
+  console.log(`Health: /health`);
+  console.log(`Public: /public/`);
+}
+bootstrap();
