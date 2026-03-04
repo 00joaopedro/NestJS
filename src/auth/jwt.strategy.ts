@@ -21,17 +21,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    const userId = payload?.sub;
-    if (!userId) throw new UnauthorizedException('Invalid token payload (missing sub).');
+  const userId = payload?.sub;
+if (!userId) {
+  throw new UnauthorizedException('Invalid token payload (missing sub).');
+}
 
-    const profile = await this.prisma.profile.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, role: true },
-    });
+const profile = await this.prisma.profile.findUnique({
+  where: { id: userId },
+  select: { id: true, email: true, role: true },
+});
 
-    if (!profile) throw new UnauthorizedException('User profile not found.');
+if (!profile) {
+  throw new UnauthorizedException('User profile not found.');
+}
 
-    return { id: profile.id, email: profile.email, roles: [profile.role] };
+return { id: profile.id, email: profile.email, roles: [profile.role] };
   }
 }
