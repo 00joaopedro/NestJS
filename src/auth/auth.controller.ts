@@ -1,10 +1,29 @@
 import {
-  BadRequestException, Body, Controller, Get, Post, Req, Res, UseGuards,
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { Role } from '@prisma/client';
 import { SupabaseService } from '../supabase/supabase.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+
+function isConflictError(message: string): boolean {
+  const normalizedMessage = message.toLowerCase();
+
+  return normalizedMessage.includes('already registered')
+    || normalizedMessage.includes('already exists')
+    || normalizedMessage.includes('duplicate');
+}
 
 @Controller('auth')
 export class AuthController {
@@ -26,21 +45,41 @@ export class AuthController {
     }
 
     const { data, error } = await this.supabase.anon.auth.signUp({ email, password });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      if (isConflictError(error.message)) {
+        throw new ConflictException(error.message);
+      }
+
+      throw new BadRequestException(error.message);
+    }
 
     // Garante profile no DB via Prisma (mesmo sem trigger)
     if (data.user) {
-      await this.prisma.profile.upsert({
-        where: { id: data.user.id },
-        update: {
-          email: data.user.email ?? undefined,
-        },
-        create: {
-          id: data.user.id,
-          email: data.user.email,
-          role: 'Comprador',
-        },
-      });
+      try {
+        await this.prisma.profile.upsert({
+          where: { id: data.user.id },
+          update: {
+            email: data.user.email ?? undefined,
+          },
+          create: {
+            id: data.user.id,
+            email: data.user.email ?? email,
+            role: Role.Comprador,
+          },
+        });
+      } catch {
+        const { error: rollbackError } = await this.supabase.admin.auth.admin.deleteUser(data.user.id);
+
+        if (rollbackError) {
+          throw new InternalServerErrorException(
+            'User was created in authentication, but profile creation failed. Manual cleanup is required.',
+          );
+        }
+
+        throw new InternalServerErrorException(
+          'User registration failed while creating the profile. The authentication user was rolled back.',
+        );
+      }
     }
 
     return { ok: true, user: data.user };
@@ -62,10 +101,14 @@ export class AuthController {
       email,
       password,
     });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      throw new UnauthorizedException(error.message);
+    }
 
     const accessToken = data.session?.access_token;
-    if (!accessToken) return { ok: false, error: 'No access token returned by Supabase.' };
+    if (!accessToken) {
+      throw new InternalServerErrorException('Supabase did not return an access token.');
+    }
 
     const isProd = process.env.NODE_ENV === 'production';
 
