@@ -40,11 +40,13 @@ export class AuthController {
     if (!email || !password) {
       throw new BadRequestException('email and password are required');
     }
+
     if (password.length < 6) {
       throw new BadRequestException('password must be at least 6 characters');
     }
 
     const { data, error } = await this.supabase.anon.auth.signUp({ email, password });
+
     if (error) {
       if (isConflictError(error.message)) {
         throw new ConflictException(error.message);
@@ -53,7 +55,6 @@ export class AuthController {
       throw new BadRequestException(error.message);
     }
 
-    // Garante profile no DB via Prisma (mesmo sem trigger)
     if (data.user) {
       try {
         await this.prisma.profile.upsert({
@@ -101,6 +102,7 @@ export class AuthController {
       email,
       password,
     });
+
     if (error) {
       throw new UnauthorizedException(error.message);
     }
@@ -112,14 +114,11 @@ export class AuthController {
 
     const isProd = process.env.NODE_ENV === 'production';
 
-    // Se seu frontend é servido pelo MESMO domínio do backend (Railway), sameSite=lax funciona bem.
     res.cookie('jwt', accessToken, {
       httpOnly: true,
-      secure: isProd, // no Railway (https) deve ser true
+      secure: isProd,
       sameSite: 'lax',
       path: '/',
-      // opcional:
-      // maxAge: (data.session?.expires_in ?? 3600) * 1000,
     });
 
     return { ok: true };
