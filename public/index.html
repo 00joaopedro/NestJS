@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>UI Kit - Login/Registro/Pagamento</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NextStock - Login / Cadastro</title>
   <style>
     * {
       margin: 0;
@@ -13,11 +14,12 @@
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #0d1b2a, #00cfcf);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       color: #333;
+      padding: 20px;
     }
 
     .container {
@@ -26,7 +28,7 @@
       padding: 40px;
       border-radius: 12px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
     }
 
@@ -36,11 +38,17 @@
       color: white;
     }
 
+    .subtitle {
+      color: #f4f4f4;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
     .btn {
       display: block;
-      margin: 20px auto;
+      margin: 14px auto;
       padding: 15px;
-      width: 80%;
+      width: 100%;
       background: #1a456f;
       color: #fff;
       font-size: 16px;
@@ -56,11 +64,31 @@
       background: #0bb5b5;
     }
 
-    /* Pop-up sobreposto */
+    .btn.secondary {
+      background: #ffffff;
+      color: #1a456f;
+    }
+
+    .btn.secondary:hover {
+      background: #e9f7f7;
+    }
+
+    .status-box {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.18);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 48px;
+    }
+
     .popup {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       background: rgba(0,0,0,0.6);
@@ -68,6 +96,7 @@
       justify-content: center;
       align-items: center;
       z-index: 10;
+      padding: 20px;
     }
 
     .popup:target {
@@ -78,8 +107,8 @@
       background: #fff;
       padding: 40px;
       border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
+      width: 100%;
+      max-width: 420px;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       animation: slideDown 0.4s ease;
@@ -91,7 +120,7 @@
     }
 
     .popup-content h2 {
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       color: #0d1b2a;
     }
 
@@ -106,12 +135,12 @@
     }
 
     .popup-content .btn {
-      margin-top: 25px;
+      margin-top: 16px;
       width: 100%;
     }
 
     .close {
-      display: block;
+      display: inline-block;
       margin-top: 20px;
       color: #555;
       text-decoration: none;
@@ -119,11 +148,29 @@
       font-size: 14px;
     }
 
-    /* Responsivo */
+    .helper-links {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .helper-links a {
+      color: #1a456f;
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .helper-links a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 500px) {
       .container {
         padding: 30px 20px;
       }
+
       .popup-content {
         padding: 30px 20px;
       }
@@ -131,44 +178,240 @@
   </style>
 </head>
 <body>
-  <!-- Página principal -->
   <div class="container">
     <h1>Bem-vindo ao NextStock</h1>
-    <a href="caixa.html" class="btn">TESTE</a>
+    <p class="subtitle">Sistema web integrado ao backend NestJS</p>
+
+    <a href="caixa.html" class="btn">Entrar no sistema</a>
     <a href="#login" class="btn">Login</a>
     <a href="#cadastro" class="btn">Cadastro</a>
-    <a href="link-mercado-pago" class="btn">Pagamento</a>
-    <a href="link-muda-senha" class="btn">Trocar senha</a>
-    
+
+    <!-- Ajuste esse link quando tiver a rota real -->
+    <a href="/planos.html" class="btn secondary">Pagamento / Planos</a>
+
+    <!-- Ajuste essa rota se no backend existir endpoint/tela específica -->
+    <a href="#trocar-senha" class="btn secondary">Trocar senha</a>
+
+    <button id="profileBtn" class="btn secondary" type="button">Ver sessão atual</button>
+    <button id="logoutBtn" class="btn secondary" type="button">Logout</button>
+
+    <div id="statusBox" class="status-box">Pronto para autenticação.</div>
   </div>
 
-  <!-- Pop-up Login -->
+  <!-- Login -->
   <div id="login" class="popup">
     <div class="popup-content">
       <h2>Login</h2>
-      <form>
-        <input type="email" placeholder="E-mail" required>
-        <input type="password" placeholder="Senha" required>
+      <form id="loginForm">
+        <input id="loginEmail" type="email" placeholder="E-mail" required />
+        <input id="loginPassword" type="password" placeholder="Senha" required />
         <button class="btn" type="submit">Entrar</button>
       </form>
+      <div class="helper-links">
+        <a href="#trocar-senha">Esqueci minha senha</a>
+      </div>
       <a href="#" class="close">Fechar</a>
     </div>
   </div>
 
-  <!-- Pop-up Cadastro -->
+  <!-- Cadastro -->
   <div id="cadastro" class="popup">
     <div class="popup-content">
       <h2>Cadastro</h2>
-      <form>
-        <input type="text" placeholder="Nome completo" required>
-        <input type="email" placeholder="E-mail" required>
-        <input type="password" placeholder="Senha" required>
+      <form id="registerForm">
+        <input id="registerName" type="text" placeholder="Nome completo" required />
+        <input id="registerEmail" type="email" placeholder="E-mail" required />
+        <input id="registerPassword" type="password" placeholder="Senha" minlength="6" required />
         <button class="btn" type="submit">Registrar</button>
       </form>
       <a href="#" class="close">Fechar</a>
     </div>
   </div>
 
-  <!-- Pop-up Pagamento -->
+  <!-- Trocar senha -->
+  <div id="trocar-senha" class="popup">
+    <div class="popup-content">
+      <h2>Trocar senha</h2>
+      <form id="resetForm">
+        <input id="resetEmail" type="email" placeholder="Seu e-mail" required />
+        <button class="btn" type="submit">Enviar solicitação</button>
+      </form>
+      <p style="margin-top: 12px; font-size: 13px; color: #666;">
+        Esse botão depende de uma rota existente no backend.
+      </p>
+      <a href="#" class="close">Fechar</a>
+    </div>
+  </div>
+
+  <script>
+    const API = '';
+
+    function setStatus(message, isError = false) {
+      const box = document.getElementById('statusBox');
+      box.textContent = message;
+      box.style.background = isError
+        ? 'rgba(180, 30, 30, 0.35)'
+        : 'rgba(255,255,255,0.18)';
+    }
+
+    async function safeJson(res) {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    }
+
+    function extractMessage(data) {
+      if (!data) return 'Sem resposta.';
+      if (typeof data === 'string') return data;
+      if (data.message) {
+        return Array.isArray(data.message)
+          ? data.message.join('\n')
+          : data.message;
+      }
+      if (data.error) return data.error;
+      return JSON.stringify(data, null, 2);
+    }
+
+    async function apiRequest(url, options = {}) {
+      const res = await fetch(API + url, {
+        credentials: 'include',
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+
+      const data = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(extractMessage(data));
+      }
+
+      return { res, data };
+    }
+
+    // Cadastro
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+
+      try {
+        setStatus('Realizando cadastro...');
+        const { data } = await apiRequest('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password })
+        });
+
+        setStatus('Cadastro realizado com sucesso.\n\n' + extractMessage(data));
+        window.location.hash = '';
+      } catch (error) {
+        setStatus('Erro no cadastro:\n\n' + error.message, true);
+      }
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        setStatus('Realizando login...');
+        const { data } = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+
+        setStatus('Login realizado com sucesso.\n\n' + extractMessage(data));
+        window.location.hash = '';
+
+        // Redireciona se quiser entrar direto no sistema
+        // window.location.href = '/dashboard.html';
+      } catch (error) {
+        setStatus('Erro no login:\n\n' + error.message, true);
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        setStatus('Encerrando sessão...');
+        const { data } = await apiRequest('/auth/logout', {
+          method: 'POST'
+        });
+
+        setStatus('Logout realizado.\n\n' + extractMessage(data));
+      } catch (error) {
+        setStatus('Erro no logout:\n\n' + error.message, true);
+      }
+    });
+
+    // Sessão atual
+    document.getElementById('profileBtn').addEventListener('click', async () => {
+      try {
+        setStatus('Consultando sessão atual...');
+        const { data } = await apiRequest('/auth/profile', {
+          method: 'GET'
+        });
+
+        setStatus('Sessão ativa:\n\n' + JSON.stringify(data, null, 2));
+      } catch (error) {
+        setStatus('Sessão não encontrada ou usuário não autenticado.\n\n' + error.message, true);
+      }
+    });
+
+    // Reset de senha
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('resetEmail').value.trim();
+
+      try {
+        setStatus('Enviando solicitação de troca de senha...');
+
+        // Altere essa rota para a sua rota real se existir
+        const { data } = await apiRequest('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+
+        setStatus('Solicitação enviada.\n\n' + extractMessage(data));
+        window.location.hash = '';
+      } catch (error) {
+        setStatus(
+          'Erro ao solicitar troca de senha.\n\n' +
+          error.message +
+          '\n\nSe essa rota ainda não existe no backend, crie o endpoint correspondente.',
+          true
+        );
+      }
+    });
+
+    // Checagem inicial opcional
+    window.addEventListener('load', async () => {
+      try {
+        const res = await fetch(API + '/health', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          setStatus('Aplicação online. Backend NestJS respondendo normalmente.');
+        } else {
+          setStatus('Frontend carregado, mas o backend respondeu com status ' + res.status + '.', true);
+        }
+      } catch (error) {
+        setStatus('Frontend carregado, mas não foi possível alcançar o backend.\n\n' + error.message, true);
+      }
+    });
+  </script>
 </body>
 </html>
