@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import type { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
+import { toTenantSummary } from '../tenancy/tenant.utils';
 
 function cookieExtractor(req: Request): string | null {
   return req?.cookies?.jwt ?? null;
@@ -19,7 +20,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        cookieExtractor,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       algorithms: ['ES256'],
       secretOrKeyProvider: jwksRsa.passportJwtSecret({
@@ -40,7 +44,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const profile = await this.prisma.profile.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, role: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        tenantId: true,
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
     });
 
     if (!profile) {
@@ -50,7 +66,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: profile.id,
       email: profile.email,
+      role: profile.role,
       roles: [profile.role],
+      tenantId: profile.tenantId,
+      tenant: toTenantSummary(profile.tenant),
     };
   }
 }

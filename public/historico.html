@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico - NextStock</title>
+  <style>
+    :root {
+      --cyan: #00cfcf;
+      --blue-900: #071b31;
+      --blue-800: #0d1b2a;
+      --panel: #ffffff;
+      --panel-soft: #f5f8fb;
+      --text: #17324d;
+      --muted: #64748b;
+      --border: #dbe5ef;
+      --danger: #e53935;
+      --success: #128c7e;
+      --shadow: 0 10px 30px rgba(7, 27, 49, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      background: linear-gradient(135deg, #0d1b2a, #00cfcf);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    .sidebar {
+      min-width: 14vw;
+      background: #071b31;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding-top: 18px;
+      overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #00cfcf;
+      border-radius: 5px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--cyan);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .menu {
+      list-style: none;
+      padding: 0 8px 18px;
+    }
+
+    .menu li {
+      padding: 13px 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: clamp(14px, 1vw, 20px);
+      border-radius: 8px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .menu li:hover,
+    .menu li.active {
+      background: #00cfcf;
+      color: #0d1b2a;
+      font-weight: 700;
+    }
+
+    .menu a {
+      color: inherit;
+      text-decoration: none;
+      display: block;
+    }
+
+    .main {
+      margin-left: 16vw;
+      min-width: 50vw;
+      flex: 1;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255,255,255,0.45);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left h1 {
+      font-size: 1.55rem;
+      color: var(--blue-900);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .topbar-left p {
+      color: var(--muted);
+      font-size: 0.96rem;
+      font-weight: 600;
+    }
+
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eefaf9;
+      color: #0b3a57;
+      border: 1px solid #caece8;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .dev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff8e6;
+      color: #8a6300;
+      border: 1px solid #f1dd9c;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.97);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .filters-panel {
+      margin-bottom: 18px;
+    }
+
+    .filters-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filters-title h2 {
+      font-size: 1.1rem;
+      color: var(--blue-900);
+      font-weight: 800;
+    }
+
+    .results-count {
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr 1fr 1fr auto auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(0, 207, 207, 0.12);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #071b31, #00cfcf);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #eaf1f7;
+      color: #16314a;
+    }
+
+    .documents-panel {
+      margin-bottom: 18px;
+    }
+
+    .documents-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .doc-card {
+      position: relative;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 215px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .doc-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(9, 31, 49, 0.08);
+    }
+
+    .doc-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .doc-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .badge-note {
+      background: #e7f0ff;
+      color: #154a9c;
+    }
+
+    .badge-receipt {
+      background: #e8fbf5;
+      color: #0d7b58;
+    }
+
+    .badge-company {
+      background: #eef4f8;
+      color: #39546d;
+    }
+
+    .delete-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: none;
+      background: #ffe9e8;
+      color: var(--danger);
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      background: #ffd8d6;
+    }
+
+    .doc-title {
+      font-size: 1.08rem;
+      color: var(--blue-900);
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .doc-meta {
+      display: grid;
+      gap: 8px;
+      font-size: 0.93rem;
+    }
+
+    .doc-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px dashed #d7e2ec;
+      padding-bottom: 6px;
+    }
+
+    .doc-meta-row span:first-child {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .doc-meta-row span:last-child {
+      color: var(--text);
+      font-weight: 800;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .doc-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .doc-actions .btn {
+      flex: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+      border: 2px dashed #d6e2ec;
+      border-radius: 18px;
+      background: #f8fbfd;
+      font-weight: 700;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .page-indicator {
+      min-width: 130px;
+      text-align: center;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .pagination .btn {
+      min-width: 52px;
+      min-height: 46px;
+      font-size: 1.05rem;
+    }
+
+    .pagination .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 19, 33, 0.55);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    .modal-card {
+      width: min(520px, 100%);
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 24px 60px rgba(6, 19, 33, 0.28);
+      padding: 22px;
+      color: var(--text);
+    }
+
+    .modal-card h3 {
+      font-size: 1.25rem;
+      color: var(--blue-900);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .modal-card p {
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.45;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .auth-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .auth-note {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #fff8e7;
+      border: 1px solid #f0deaa;
+      color: #896400;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .error-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #ffeceb;
+      color: #9f1f1b;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .preview-content {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 8px;
+    }
+
+    .preview-row strong:first-child {
+      color: var(--muted);
+      min-width: 120px;
+    }
+
+    .preview-row strong:last-child {
+      text-align: right;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .preview-observacao {
+      background: #f7fbfd;
+      border: 1px solid #e1ebf3;
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 0.94rem;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1280px) {
+      .documents-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filters-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 25%;
+      }
+
+      .main {
+        margin-left: 25%;
+        width: 75%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 0;
+        overflow-y: visible;
+      }
+
+      .sidebar h2 {
+        display: block;
+        font-size: 1.4rem;
+        text-align: center;
+        margin-bottom: 10px;
+        color: #00cfcf;
+      }
+
+      .menu {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 10px 12px;
+      }
+
+      .menu li {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+      }
+
+      .topbar {
+        padding: 16px;
+      }
+
+      .filters-grid,
+      .documents-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .doc-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>NextStock</h2>
+    <ul class="menu">
+      <a href="caixa.html"><li>Caixa</li></a>
+      <a href="perfil.html"><li>Perfil</li></a>
+      <a href="guia.html"><li>Guia</li></a>
+      <a href="produtos.html"><li>Produtos</li></a>
+      <a href="cadastro.html"><li>Cadastro</li></a>
+      <a href="importação.html"><li>Importação</li></a>
+      <a href="saidas.html"><li>Saídas</li></a>
+      <a href="historico.html"><li class="active">Histórico</li></a>
+      <a href="dashboard.html"><li>Dashboard</li></a>
+      <a href="pagamentos.html"><li>Pagamento</li></a>
+      <a href="funcionario.html"><li>Funcionários</li></a>
+      <a href=""><li>Suporte</li></a>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <section class="topbar">
+      <div class="topbar-left">
+        <h1>Histórico de Notas e Recibos</h1>
+        <p>Consulta, visualização e exclusão de arquivos. Página preparada para integração com backend.</p>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <div class="dev-badge">Acesso livre para desenvolvimento</div>
+        <div class="session-badge" id="sessionBadge">Usuário atual: não autenticado</div>
+      </div>
+    </section>
+
+    <section class="panel filters-panel">
+      <div class="filters-title">
+        <h2>Filtros do histórico</h2>
+        <div class="results-count" id="resultsCount">0 arquivo(s) encontrado(s)</div>
+      </div>
+
+      <div class="filters-grid">
+        <div class="field">
+          <label for="empresaSearch">Pesquisar por empresa</label>
+          <input
+            type="text"
+            id="empresaSearch"
+            maxlength="100"
+            placeholder="Digite o nome da empresa"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="field">
+          <label for="dateFilterType">Filtro de data</label>
+          <select id="dateFilterType">
+            <option value="">Sem filtro</option>
+            <option value="day">Dia</option>
+            <option value="month">Mês</option>
+            <option value="year">Ano</option>
+          </select>
+        </div>
+
+        <div class="field hidden" id="dayField">
+          <label for="dateDay">Selecionar dia</label>
+          <input type="date" id="dateDay">
+        </div>
+
+        <div class="field hidden" id="monthField">
+          <label for="dateMonth">Selecionar mês</label>
+          <input type="month" id="dateMonth">
+        </div>
+
+        <div class="field hidden" id="yearField">
+          <label for="dateYear">Selecionar ano</label>
+          <select id="dateYear"></select>
+        </div>
+
+        <div class="field">
+          <label for="minValue">Valor mínimo</label>
+          <input
+            type="number"
+            id="minValue"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            placeholder="Ex: 100.00"
+          >
+        </div>
+
+        <button class="btn btn-primary" id="applyFiltersBtn" type="button">Aplicar filtros</button>
+        <button class="btn btn-secondary" id="clearFiltersBtn" type="button">Limpar</button>
+      </div>
+    </section>
+
+    <section class="panel documents-panel">
+      <div id="documentsContainer" class="documents-grid"></div>
+
+      <div class="pagination">
+        <button class="btn btn-secondary" id="prevPageBtn" type="button" aria-label="Página anterior">&lt;</button>
+        <div class="page-indicator" id="pageIndicator">Página 1 de 1</div>
+        <button class="btn btn-secondary" id="nextPageBtn" type="button" aria-label="Próxima página">&gt;</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="authOverlay">
+    <div class="modal-card">
+      <h3>Acesso ao histórico</h3>
+      <p>Somente usuários com perfil <strong>admin</strong> ou <strong>gerente</strong> poderão acessar quando o backend estiver ativo. No momento, o acesso está liberado para desenvolvimento.</p>
+
+      <div class="auth-note">
+        Estrutura de permissão já preparada. Por enquanto, qualquer entrada pode acessar para testes.
+      </div>
+
+      <form id="authForm" class="auth-grid" novalidate>
+        <div class="field">
+          <label for="authUsername">Nome do usuário</label>
+          <input
+            type="text"
+            id="authUsername"
+            maxlength="60"
+            autocomplete="username"
+            placeholder="Digite o nome do usuário"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="authPassword">Senha</label>
+          <input
+            type="password"
+            id="authPassword"
+            maxlength="60"
+            autocomplete="current-password"
+            placeholder="Digite a senha"
+            required
+          >
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Entrar</button>
+        </div>
+
+        <div class="error-box hidden" id="authErrorBox"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="previewOverlay">
+    <div class="modal-card">
+      <h3>Visualizar arquivo</h3>
+      <p>Pré-visualização preparada para backend. Aqui você poderá consultar os dados completos do recibo ou da nota.</p>
+
+      <div class="preview-content" id="previewContent"></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="closePreviewBtn" type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="confirmOverlay">
+    <div class="modal-card">
+      <h3>Confirmar exclusão</h3>
+      <p id="confirmMessage">Tem certeza que deseja apagar este arquivo?</p>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelDeleteBtn" type="button">Não</button>
+        <button class="btn btn-primary" id="confirmDeleteBtn" type="button">Sim, apagar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEV_FREE_ACCESS = true;
+    const PAGE_SIZE = 12;
+    const STORAGE_KEY = "nextstock_historico_docs_v1";
+
+    const MOCK_USERS = [
+      { username: "admin", password: "123", role: "admin" },
+      { username: "gerente", password: "123", role: "gerente" },
+      { username: "caixa", password: "123", role: "caixa" }
+    ];
+
+    const EXAMPLE_DOCUMENTS = [
+      {
+        id: "DOC-0003",
+        tipo: "nota",
+        empresa: "Mercado Central LTDA",
+        numero: "NF-2026-0003",
+        valor: 482.90,
+        dataEmissao: "2026-03-21",
+        criadoEm: "2026-03-21T18:45:00",
+        observacao: "Nota fiscal referente à venda do turno da noite.",
+        itens: 8
+      },
+      {
+        id: "DOC-0002",
+        tipo: "recibo",
+        empresa: "Padaria Bom Trigo",
+        numero: "RC-2026-0002",
+        valor: 95.50,
+        dataEmissao: "2026-03-19",
+        criadoEm: "2026-03-19T09:30:00",
+        observacao: "Recibo emitido para pagamento parcial de compra avulsa.",
+        itens: 3
+      },
+      {
+        id: "DOC-0001",
+        tipo: "nota",
+        empresa: "Loja Matriz NextStock",
+        numero: "NF-2026-0001",
+        valor: 1260.00,
+        dataEmissao: "2026-03-18",
+        criadoEm: "2026-03-18T14:10:00",
+        observacao: "Primeira nota de teste cadastrada para validação da página.",
+        itens: 15
+      }
+    ];
+
+    let currentUser = null;
+    let currentDeleteId = null;
+    let allDocuments = [];
+    let filteredDocuments = [];
+    let currentPage = 1;
+
+    const authOverlay = document.getElementById("authOverlay");
+    const authForm = document.getElementById("authForm");
+    const authUsername = document.getElementById("authUsername");
+    const authPassword = document.getElementById("authPassword");
+    const authErrorBox = document.getElementById("authErrorBox");
+
+    const sessionBadge = document.getElementById("sessionBadge");
+    const empresaSearch = document.getElementById("empresaSearch");
+    const dateFilterType = document.getElementById("dateFilterType");
+    const dayField = document.getElementById("dayField");
+    const monthField = document.getElementById("monthField");
+    const yearField = document.getElementById("yearField");
+    const dateDay = document.getElementById("dateDay");
+    const dateMonth = document.getElementById("dateMonth");
+    const dateYear = document.getElementById("dateYear");
+    const minValue = document.getElementById("minValue");
+
+    const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+    const documentsContainer = document.getElementById("documentsContainer");
+    const resultsCount = document.getElementById("resultsCount");
+
+    const prevPageBtn = document.getElementById("prevPageBtn");
+    const nextPageBtn = document.getElementById("nextPageBtn");
+    const pageIndicator = document.getElementById("pageIndicator");
+
+    const previewOverlay = document.getElementById("previewOverlay");
+    const previewContent = document.getElementById("previewContent");
+    const closePreviewBtn = document.getElementById("closePreviewBtn");
+
+    const confirmOverlay = document.getElementById("confirmOverlay");
+    const confirmMessage = document.getElementById("confirmMessage");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+    function sanitizeText(value, maxLength = 100) {
+      return String(value || "")
+        .normalize("NFKC")
+        .replace(/[<>{}[\]\\;]/g, "")
+        .replace(/["'`]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, maxLength);
+    }
+
+    function sanitizeNumber(value) {
+      const clean = String(value || "")
+        .replace(",", ".")
+        .replace(/[^\d.]/g, "");
+
+      const parsed = Number(clean);
+      return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    }
+
+    function escapeHTML(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatCurrency(value) {
+      return Number(value || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "-";
+      const [year, month, day] = String(dateString).split("-");
+      if (!year || !month || !day) return "-";
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return "-";
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return "-";
+
+      return date.toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+    }
+
+    function userCanAccess(role) {
+      return role === "admin" || role === "gerente";
+    }
+
+    async function validateAccessWithBackend(username, password) {
+      // Pronto para backend:
+      // return await fetch("/api/auth/historico", { ... });
+      return null;
+    }
+
+    async function fetchHistoricoFromBackend() {
+      // Pronto para backend:
+      // return await fetch("/api/historico").then(res => res.json());
+      return null;
+    }
+
+    async function deleteHistoricoFromBackend(documentId) {
+      // Pronto para backend:
+      // return await fetch(`/api/historico/${documentId}`, { method: "DELETE" });
+      return true;
+    }
+
+    function ensureExampleDocuments() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(EXAMPLE_DOCUMENTS));
+      }
+    }
+
+    function loadDocumentsFromStorage() {
+      ensureExampleDocuments();
+
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        if (!Array.isArray(parsed)) return [...EXAMPLE_DOCUMENTS];
+
+        return parsed
+          .filter((item) => item && typeof item === "object")
+          .map((item) => ({
+            id: sanitizeText(item.id, 40),
+            tipo: sanitizeText(item.tipo, 20).toLowerCase() === "recibo" ? "recibo" : "nota",
+            empresa: sanitizeText(item.empresa, 100),
+            numero: sanitizeText(item.numero, 50),
+            valor: sanitizeNumber(item.valor),
+            dataEmissao: sanitizeText(item.dataEmissao, 20),
+            criadoEm: sanitizeText(item.criadoEm, 40),
+            observacao: sanitizeText(item.observacao, 300),
+            itens: Math.max(0, parseInt(item.itens, 10) || 0)
+          }));
+      } catch {
+        return [...EXAMPLE_DOCUMENTS];
+      }
+    }
+
+    function saveDocumentsToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allDocuments));
+    }
+
+    async function loadDocuments() {
+      const backendData = await fetchHistoricoFromBackend();
+
+      if (Array.isArray(backendData) && backendData.length > 0) {
+        allDocuments = backendData;
+      } else {
+        allDocuments = loadDocumentsFromStorage();
+      }
+
+      allDocuments.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+    }
+
+    function fillYearOptions() {
+      const currentYear = new Date().getFullYear();
+      dateYear.innerHTML = "";
+
+      for (let year = currentYear + 1; year >= currentYear - 15; year -= 1) {
+        const option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        dateYear.appendChild(option);
+      }
+
+      dateYear.value = String(currentYear);
+    }
+
+    function updateDateFilterUI() {
+      dayField.classList.add("hidden");
+      monthField.classList.add("hidden");
+      yearField.classList.add("hidden");
+
+      if (dateFilterType.value === "day") {
+        dayField.classList.remove("hidden");
+      }
+
+      if (dateFilterType.value === "month") {
+        monthField.classList.remove("hidden");
+      }
+
+      if (dateFilterType.value === "year") {
+        yearField.classList.remove("hidden");
+      }
+    }
+
+    function applyFilters(resetPage = true) {
+      const empresa = sanitizeText(empresaSearch.value, 100).toLowerCase();
+      const filterType = sanitizeText(dateFilterType.value, 20);
+      const selectedDay = sanitizeText(dateDay.value, 20);
+      const selectedMonth = sanitizeText(dateMonth.value, 20);
+      const selectedYear = sanitizeText(dateYear.value, 10);
+      const minimumValue = sanitizeNumber(minValue.value);
+
+      if (empresaSearch.value !== empresa) {
+        empresaSearch.value = empresa;
+      }
+
+      if (minimumValue > 0) {
+        minValue.value = minimumValue.toFixed(2);
+      } else if (String(minValue.value).trim() !== "") {
+        minValue.value = "";
+      }
+
+      filteredDocuments = allDocuments.filter((doc) => {
+        const empresaMatch = !empresa || doc.empresa.toLowerCase().includes(empresa);
+        const valueMatch = doc.valor >= minimumValue;
+
+        let dateMatch = true;
+
+        if (filterType === "day") {
+          dateMatch = !!selectedDay && doc.dataEmissao === selectedDay;
+        }
+
+        if (filterType === "month") {
+          dateMatch = !!selectedMonth && doc.dataEmissao.startsWith(selectedMonth);
+        }
+
+        if (filterType === "year") {
+          dateMatch = !!selectedYear && doc.dataEmissao.startsWith(selectedYear);
+        }
+
+        return empresaMatch && valueMatch && dateMatch;
+      });
+
+      filteredDocuments.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+
+      if (resetPage) {
+        currentPage = 1;
+      }
+
+      renderDocuments();
+      updatePagination();
+      updateResultsCount();
+    }
+
+    function updateResultsCount() {
+      resultsCount.textContent = `${filteredDocuments.length} arquivo(s) encontrado(s)`;
+    }
+
+    function getPaginatedDocuments() {
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      return filteredDocuments.slice(start, end);
+    }
+
+    function renderDocuments() {
+      const documents = getPaginatedDocuments();
+      documentsContainer.innerHTML = "";
+
+      if (documents.length === 0) {
+        documentsContainer.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            Nenhum arquivo encontrado com os filtros atuais.
+          </div>
+        `;
+        return;
+      }
+
+      documents.forEach((doc) => {
+        const card = document.createElement("article");
+        card.className = "doc-card";
+        card.innerHTML = `
+          <div class="doc-card-header">
+            <div class="doc-badges">
+              <span class="badge ${doc.tipo === "recibo" ? "badge-receipt" : "badge-note"}">
+                ${doc.tipo === "recibo" ? "RECIBO" : "NOTA FISCAL"}
+              </span>
+              <span class="badge badge-company">${escapeHTML(doc.empresa)}</span>
+            </div>
+
+            <button
+              class="delete-btn"
+              type="button"
+              title="Apagar arquivo"
+              aria-label="Apagar arquivo ${escapeHTML(doc.numero)}"
+              data-delete-id="${escapeHTML(doc.id)}"
+            >X</button>
+          </div>
+
+          <div class="doc-title">${escapeHTML(doc.numero)}</div>
+
+          <div class="doc-meta">
+            <div class="doc-meta-row">
+              <span>Empresa</span>
+              <span>${escapeHTML(doc.empresa)}</span>
+            </div>
+            <div class="doc-meta-row">
+              <span>Data</span>
+              <span>${formatDate(doc.dataEmissao)}</span>
+            </div>
+            <div class="doc-meta-row">
+              <span>Valor</span>
+              <span>${formatCurrency(doc.valor)}</span>
+            </div>
+            <div class="doc-meta-row">
+              <span>Itens</span>
+              <span>${doc.itens}</span>
+            </div>
+            <div class="doc-meta-row">
+              <span>Adicionado em</span>
+              <span>${formatDateTime(doc.criadoEm)}</span>
+            </div>
+          </div>
+
+          <div class="doc-actions">
+            <button class="btn btn-primary" type="button" data-view-id="${escapeHTML(doc.id)}">Visualizar</button>
+          </div>
+        `;
+
+        documentsContainer.appendChild(card);
+      });
+    }
+
+    function updatePagination() {
+      const totalPages = Math.max(1, Math.ceil(filteredDocuments.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      pageIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    function getDocumentById(documentId) {
+      return allDocuments.find((doc) => doc.id === documentId) || null;
+    }
+
+    function openPreview(documentId) {
+      const doc = getDocumentById(documentId);
+      if (!doc) return;
+
+      previewContent.innerHTML = `
+        <div class="preview-row">
+          <strong>Tipo</strong>
+          <strong>${doc.tipo === "recibo" ? "Recibo" : "Nota Fiscal"}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Número</strong>
+          <strong>${escapeHTML(doc.numero)}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Empresa</strong>
+          <strong>${escapeHTML(doc.empresa)}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Data</strong>
+          <strong>${formatDate(doc.dataEmissao)}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Valor</strong>
+          <strong>${formatCurrency(doc.valor)}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Itens</strong>
+          <strong>${doc.itens}</strong>
+        </div>
+        <div class="preview-row">
+          <strong>Criado em</strong>
+          <strong>${formatDateTime(doc.criadoEm)}</strong>
+        </div>
+        <div>
+          <strong style="display:block; color: var(--muted); margin-bottom:8px;">Observação</strong>
+          <div class="preview-observacao">${escapeHTML(doc.observacao || "Sem observações.")}</div>
+        </div>
+      `;
+
+      previewOverlay.classList.remove("hidden");
+    }
+
+    function closePreview() {
+      previewOverlay.classList.add("hidden");
+      previewContent.innerHTML = "";
+    }
+
+    function openDeleteConfirm(documentId) {
+      const doc = getDocumentById(documentId);
+      if (!doc) return;
+
+      currentDeleteId = documentId;
+      confirmMessage.textContent = `Tem certeza que deseja apagar ${doc.tipo === "recibo" ? "o recibo" : "a nota"} ${doc.numero}?`;
+      confirmOverlay.classList.remove("hidden");
+    }
+
+    function closeDeleteConfirm() {
+      currentDeleteId = null;
+      confirmOverlay.classList.add("hidden");
+    }
+
+    async function confirmDelete() {
+      if (!currentDeleteId) return;
+
+      await deleteHistoricoFromBackend(currentDeleteId);
+
+      allDocuments = allDocuments.filter((doc) => doc.id !== currentDeleteId);
+      saveDocumentsToStorage();
+      applyFilters(false);
+      closeDeleteConfirm();
+    }
+
+    async function handleAuth(event) {
+      event.preventDefault();
+
+      authErrorBox.classList.add("hidden");
+      authErrorBox.textContent = "";
+
+      const username = sanitizeText(authUsername.value, 60);
+      const password = sanitizeText(authPassword.value, 60);
+
+      authUsername.value = username;
+      authPassword.value = password;
+
+      const backendResult = await validateAccessWithBackend(username, password);
+
+      if (backendResult && userCanAccess(backendResult.role)) {
+        currentUser = {
+          username: backendResult.username,
+          role: backendResult.role
+        };
+        finishLogin();
+        return;
+      }
+
+      const localUser = MOCK_USERS.find((user) => {
+        return user.username === username && user.password === password;
+      });
+
+      if (!DEV_FREE_ACCESS) {
+        if (!localUser) {
+          authErrorBox.textContent = "Usuário ou senha inválidos.";
+          authErrorBox.classList.remove("hidden");
+          return;
+        }
+
+        if (!userCanAccess(localUser.role)) {
+          authErrorBox.textContent = "Acesso negado. Somente admin ou gerente pode acessar o histórico.";
+          authErrorBox.classList.remove("hidden");
+          return;
+        }
+      }
+
+      currentUser = localUser || {
+        username: username || "dev",
+        role: "admin"
+      };
+
+      finishLogin();
+    }
+
+    function finishLogin() {
+      authOverlay.classList.add("hidden");
+      sessionBadge.textContent = `Usuário atual: ${currentUser.username} (${currentUser.role})`;
+    }
+
+    function clearFilters() {
+      empresaSearch.value = "";
+      dateFilterType.value = "";
+      dateDay.value = "";
+      dateMonth.value = "";
+      minValue.value = "";
+      fillYearOptions();
+      updateDateFilterUI();
+      applyFilters(true);
+    }
+
+    function handleDocumentActions(event) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      const viewId = target.dataset.viewId;
+      const deleteId = target.dataset.deleteId;
+
+      if (viewId) {
+        openPreview(viewId);
+      }
+
+      if (deleteId) {
+        openDeleteConfirm(deleteId);
+      }
+    }
+
+    function initialize() {
+      fillYearOptions();
+      updateDateFilterUI();
+
+      loadDocuments().then(() => {
+        filteredDocuments = [...allDocuments];
+        applyFilters(true);
+      });
+    }
+
+    authForm.addEventListener("submit", handleAuth);
+    dateFilterType.addEventListener("change", updateDateFilterUI);
+    applyFiltersBtn.addEventListener("click", () => applyFilters(true));
+    clearFiltersBtn.addEventListener("click", clearFilters);
+    documentsContainer.addEventListener("click", handleDocumentActions);
+
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        renderDocuments();
+        updatePagination();
+      }
+    });
+
+    nextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.max(1, Math.ceil(filteredDocuments.length / PAGE_SIZE));
+      if (currentPage < totalPages) {
+        currentPage += 1;
+        renderDocuments();
+        updatePagination();
+      }
+    });
+
+    closePreviewBtn.addEventListener("click", closePreview);
+    cancelDeleteBtn.addEventListener("click", closeDeleteConfirm);
+    confirmDeleteBtn.addEventListener("click", confirmDelete);
+
+    previewOverlay.addEventListener("click", (event) => {
+      if (event.target === previewOverlay) {
+        closePreview();
+      }
+    });
+
+    confirmOverlay.addEventListener("click", (event) => {
+      if (event.target === confirmOverlay) {
+        closeDeleteConfirm();
+      }
+    });
+
+    empresaSearch.addEventListener("input", () => {
+      empresaSearch.value = sanitizeText(empresaSearch.value, 100);
+    });
+
+    minValue.addEventListener("input", () => {
+      minValue.value = String(minValue.value).replace(",", ".").replace(/[^\d.]/g, "");
+    });
+
+    initialize();
+  </script>
+</body>
+</html>

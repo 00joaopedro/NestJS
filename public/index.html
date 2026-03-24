@@ -8,7 +8,6 @@
     .box { border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 6px; }
     input { padding: 8px; margin: 6px 0; width: 100%; box-sizing: border-box; }
     button { padding: 8px 12px; margin-right: 6px; }
-    pre { background: #f7f7f7; padding: 12px; overflow: auto; }
   </style>
 </head>
 <body>
@@ -35,72 +34,100 @@
     <button data-endpoint="/users" class="callBtn">Users (Admin only)</button>
   </div>
 
-  <div class="box">
-    <h3>Resposta</h3>
-    <pre id="output">Nenhuma ação ainda.</pre>
-  </div>
-
   <script>
-    // Use relativo para funcionar no Railway/Render e no localhost
-    // Se estiver abrindo esse HTML fora do backend, aí sim coloque URL absoluta.
-    const API = ''
-    const output = document.getElementById('output')
-
-    function show(obj) {
-      output.textContent = JSON.stringify(obj, null, 2)
-    }
+    const API = '';
 
     async function safeJson(res) {
-      const text = await res.text()
-      try { return JSON.parse(text) } catch { return text }
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    }
+
+    function extractMessage(data) {
+      if (!data) return 'Sem resposta.';
+      if (typeof data === 'string') return data;
+      if (data.message) return Array.isArray(data.message) ? data.message.join('\n') : data.message;
+      if (data.error) return data.error;
+      return JSON.stringify(data, null, 2);
+    }
+
+    function showAlert(title, status, data) {
+      const message = extractMessage(data);
+      alert(`${title}\nStatus: ${status}\n\n${message}`);
     }
 
     document.getElementById('registerBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim()
-      const password = document.getElementById('password').value
-      const res = await fetch(API + '/auth/register', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await safeJson(res)
-      show({ status: res.status, data })
-    })
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch(API + '/auth/register', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await safeJson(res);
+        showAlert('Resultado do cadastro', res.status, data);
+      } catch (error) {
+        alert(`Erro no cadastro\n\n${error.message}`);
+      }
+    });
 
     document.getElementById('loginBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim()
-      const password = document.getElementById('password').value
-      const res = await fetch(API + '/auth/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await safeJson(res)
-      show({ status: res.status, data })
-    })
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch(API + '/auth/login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await safeJson(res);
+        showAlert('Resultado do login', res.status, data);
+      } catch (error) {
+        alert(`Erro no login\n\n${error.message}`);
+      }
+    });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      const res = await fetch(API + '/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      })
-      const data = await safeJson(res)
-      show({ status: res.status, data })
-    })
-
-    document.querySelectorAll('.callBtn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const endpoint = btn.getAttribute('data-endpoint')
-        const res = await fetch(API + endpoint, {
-          method: 'GET',
+      try {
+        const res = await fetch(API + '/auth/logout', {
+          method: 'POST',
           credentials: 'include'
-        })
-        const data = await safeJson(res)
-        show({ status: res.status, body: data })
-      })
-    })
+        });
+
+        const data = await safeJson(res);
+        showAlert('Resultado do logout', res.status, data);
+      } catch (error) {
+        alert(`Erro no logout\n\n${error.message}`);
+      }
+    });
+
+    document.querySelectorAll('.callBtn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const endpoint = btn.getAttribute('data-endpoint');
+
+        try {
+          const res = await fetch(API + endpoint, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          const data = await safeJson(res);
+          showAlert(`Resposta de ${endpoint}`, res.status, data);
+        } catch (error) {
+          alert(`Erro ao chamar ${endpoint}\n\n${error.message}`);
+        }
+      });
+    });
   </script>
 </body>
 </html>

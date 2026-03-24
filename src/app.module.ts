@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { TenancyModule } from './tenancy/tenancy.module';
+import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
   imports: [
@@ -16,9 +18,11 @@ import { PrismaModule } from './prisma/prisma.module';
       serveRoot: '/public',
     }),
     PrismaModule,
+    TenancyModule,
     SupabaseModule,
     AuthModule,
     UsersModule,
+    TenantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

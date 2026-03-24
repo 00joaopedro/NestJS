@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caixa - NextStock</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #081b30;
+      --bg-primary: #123a63;
+      --cyan: #00cfcf;
+      --text-dark: #102d55;
+      --white: #ffffff;
+      --panel: #eef1f4;
+      --border: #ccd7e2;
+      --shadow: 0 14px 28px rgba(13, 27, 42, 0.18);
+    }
+
+    html,
+    body {
+      width: 100vw;
+      min-height: 100%;
+      display: flex;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0b2038 0%, #12c5cb 100%);
+      color: var(--text-dark);
+    }
+
+    .sidebar {
+      width: 16vw;
+      background: #071b31;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding-top: 18px;
+      overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #00cfcf;
+      border-radius: 5px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--cyan);
+      font-size: 1.5rem;
+    }
+
+    .menu {
+      list-style: none;
+      padding: 0;
+    }
+
+    .menu li {
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: clamp(12px, 18px, 20px);
+      font-weight: 400;
+    }
+
+    .menu li:hover,
+    .menu li.active {
+      background: #19c7cd;
+      color: #0d1b2a;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      font-weight: 400;
+    }
+    .page {
+      margin: 1% 19vw;
+      display: flex;
+      gap: 2%;
+      min-width: 80%;
+    }
+
+    .lista-header ul{
+      list-style: none;
+      display: flex;
+      gap: 14px;
+    }
+    .lista,
+    .direita {
+      background: rgba(243, 245, 247, 0.95);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 10px;
+      height: auto;
+      min-width: 25%; 
+    }
+
+    .lista {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .direita {
+      flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      color: var(--text-dark);
+      font-size: 1.65rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .subtitulo {
+      text-align: center;
+      color: #7a8797;
+      font-size: 0.92rem;
+      margin-top: -2px;
+      font-weight: 700;
+    }
+
+    .lista-header {
+      display: grid;
+      gap: 14px;
+      color: var(--text-dark);
+      padding: 0 6px 10px 6px;
+      border-bottom: 2px solid #dfe7ef;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .product-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .product-list::-webkit-scrollbar-thumb {
+      background: #b7c4d0;
+      border-radius: 8px;
+    }
+
+    .empty-state {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6e7d8d;
+      font-size: 1rem;
+      border: 1.5px dashed #cfd9e4;
+      border-radius: 14px;
+      background: #f6f8fa;
+      padding: 24px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .bottom-inputs {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+      padding-top: 4px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) minmax(110px, 1fr) minmax(170px, 170px) minmax(120px, 120px);
+      gap: 14px;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #dde6ee;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .produto-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .produto-nome {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .produto-codigo {
+      font-size: 0.85rem;
+      color: #708296;
+      font-weight: 700;
+    }
+
+    .precoUnidade {
+      color: #17395f;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .controle-qtd {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.3s ease, background 0.3s ease;
+      font-weight: 400;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .btnLista {
+      height: 42px;
+      width: 42px;
+      font-size: 22px;
+      border-radius: 10px;
+      background: var(--bg-primary);
+      color: white;
+      font-weight: 400;
+      flex-shrink: 0;
+    }
+
+    .btnLista:hover {
+      opacity: 0.92;
+    }
+
+    .qtdInput,
+    .totalLinha,
+    .barcode-input,
+    .search-product-input {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      height: 48px;
+      padding: 0 12px;
+      outline: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      background: #ffffff;
+    }
+
+    .qtdInput {
+      width: 68px;
+      text-align: center;
+    }
+
+    .totalLinha {
+      width: 100%;
+      background: #eef4f8;
+      color: #16395f;
+    }
+
+    .barcode-box,
+    .search-product-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .barcode-box label,
+    .search-product-box label {
+      color: var(--text-dark);
+      font-size: 0.96rem;
+      font-weight: 700;
+    }
+
+    .barcode-input,
+    .search-product-input {
+      width: 100%;
+      font-size: 0.97rem;
+      background: #ffffff;
+    }
+
+    .barcode-input::placeholder,
+    .search-product-input::placeholder {
+      color: #8f99a6;
+      font-weight: 700;
+    }
+
+    .total-box {
+      background: linear-gradient(135deg, #12365f, #1a456f);
+      color: white;
+      border-radius: 16px;
+      padding: 0px 30px;
+      text-align: center;
+      margin-bottom: 10px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+      flex-shrink: 0;
+    }
+
+    .total-label {
+      font-size: 0.70rem;
+      opacity: 0.95;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .total {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #00dbe5;
+      word-break: break-word;
+    }
+
+    .baixo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      min-height: 35px;
+      width: 100%;
+      font-size: 0.8rem;
+      border-radius: 12px;
+      color: white;
+      letter-spacing: 2px;
+      font-weight: 400;
+    }
+
+    .btn-cancelar { background: #d9534f; }
+    .btn-nota { background: #3d7fbc; }
+    .btn-recibo { background: #58b2cf; }
+    .btn-finalizar { background: #2cad43; }
+
+    .btn:hover {
+      opacity: 0.95;
+    }
+
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>NextStock</h2>
+    <ul class="menu">
+      <a href="caixa.html"><li>Caixa</li></a>
+      <a href="perfil.html"><li>Perfil</li></a>
+      <a href="guia.html"><li>Guia</li></a>
+      <a href="produtos.html"><li>Produtos</li></a>
+      <a href="cadastro.html"><li>Cadastro</li></a>
+      <a href="importação.html"><li>Importação</li></a>
+      <a href="saidas.html"><li>Saídas</li></a>
+      <a href="historico.html"><li>Histórico</li></a>
+      <a href="dashboard.html"><li>Dashboard</li></a>
+      <a href="pagamentos.html"><li>Pagamento</li></a>
+      <a href="funcionario.html"><li>Funcionários</li></a>
+      <a href=""><li>Suporte</li></a>
+    </ul>
+  </aside>
+
+  <div class="page">
+    <section class="lista">
+      <h1>Lista de Produtos</h1>
+      <p class="subtitulo">Página preparada para receber os produtos do backend futuramente.</p>
+
+      <div class="lista-header">
+        <ul>
+          <li>produto</li>
+          <li>Valor unitário</li>
+          <li>Quantidade</li>
+          <li>total</li>
+        </ul>
+      </div>
+
+      <div class="product-list" id="productList">
+        <div class="empty-state" id="emptyState">
+          Nenhum produto adicionado ainda.<br>
+          Faça a leitura do código de barras ou pesquise um produto para adicionar um item.
+        </div>
+      </div>
+
+      <div class="bottom-inputs">
+        <div class="barcode-box">
+          <label for="barcodeInput">Leitura de código de barras</label>
+          <input
+            type="text"
+            id="barcodeInput"
+            class="barcode-input"
+            placeholder="Passe ou digite o código de barras e pressione Enter"
+            maxlength="120"
+            autocomplete="off"
+            inputmode="text"
+          >
+        </div>
+
+        <div class="search-product-box">
+          <label for="searchProductInput">Pesquisar produto no estoque</label>
+          <input
+            type="text"
+            id="searchProductInput"
+            class="search-product-input"
+            placeholder="Digite o nome ou código do produto e pressione Enter"
+            maxlength="120"
+            autocomplete="off"
+            inputmode="text"
+          >
+        </div>
+      </div>
+    </section>
+
+    <aside class="direita">
+      <div>
+        <div class="total-box">
+          <div class="total-label">TOTAL</div>
+          <div class="total" id="totalGeral">R$ 0,00</div>
+        </div>
+        <div>
+        <div class="total-box">
+          <div class="total-label">PAGO</div>
+          <div class="total" id="totalGeral">R$ 0,00</div>
+        </div>
+        <div>
+        <div class="total-box">
+          <div class="total-label">TROCO</div>
+          <div class="total" id="totalGeral">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="baixo">
+        <button class="btn btn-cancelar" type="button">CANCELAR</button>
+        <button class="btn btn-nota" type="button">NOTA FISCAL</button>
+        <button class="btn btn-recibo" type="button">RECIBO</button>
+        <button class="btn btn-finalizar" type="button">FINALIZAR</button>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const produtosCatalogo = {};
+    const produtosVenda = [];
+
+    const productList = document.getElementById("productList");
+    const emptyState = document.getElementById("emptyState");
+    const barcodeInput = document.getElementById("barcodeInput");
+    const searchProductInput = document.getElementById("searchProductInput");
+    const totalGeral = document.getElementById("totalGeral");
+
+    function sanitizarEntrada(valor) {
+      return String(valor)
+        .trim()
+        .replace(/[\0\x08\x09\x1a\n\r"'\\;%]/g, "")
+        .replace(/\s+/g, " ")
+        .slice(0, 120);
+    }
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function atualizarTotalGeral() {
+      const total = produtosVenda.reduce((acc, item) => {
+        return acc + (item.quantidade * item.precoUnitario);
+      }, 0);
+
+      totalGeral.textContent = formatarMoeda(total);
+    }
+
+    function atualizarTotalLinha(index) {
+      const item = produtosVenda[index];
+      const total = item.quantidade * item.precoUnitario;
+      item.total = total;
+    }
+
+    function removerProdutoSeQuantidadeZero(index) {
+      const produto = produtosVenda[index];
+      if (!produto) return;
+
+      if (produto.quantidade <= 0) {
+        produtosVenda.splice(index, 1);
+      }
+    }
+
+    function renderizarLista() {
+      productList.innerHTML = "";
+
+      if (produtosVenda.length === 0) {
+        productList.appendChild(emptyState);
+        emptyState.style.display = "flex";
+        atualizarTotalGeral();
+        return;
+      }
+
+      emptyState.style.display = "none";
+
+      produtosVenda.forEach((produto, index) => {
+        atualizarTotalLinha(index);
+
+        const row = document.createElement("div");
+        row.className = "item";
+
+        row.innerHTML = `
+          <div class="produto-info">
+            <div class="produto-nome">${produto.nome}</div>
+            <div class="produto-codigo">Código: ${produto.codigoBarra}</div>
+          </div>
+
+          <div class="precoUnidade">${formatarMoeda(produto.precoUnitario)}</div>
+
+          <div class="controle-qtd">
+            <button class="btnLista" type="button" data-action="decrement" data-index="${index}">-</button>
+            <input
+              type="number"
+              class="qtdInput"
+              min="0"
+              step="1"
+              value="${produto.quantidade}"
+              data-action="manual"
+              data-index="${index}"
+            >
+            <button class="btnLista" type="button" data-action="increment" data-index="${index}">+</button>
+          </div>
+
+          <input
+            type="text"
+            class="totalLinha"
+            value="${formatarMoeda(produto.total)}"
+            readonly
+          >
+        `;
+
+        productList.appendChild(row);
+      });
+
+      atualizarTotalGeral();
+    }
+
+    function adicionarProdutoPorCodigo(codigoBarra) {
+      const codigo = sanitizarEntrada(codigoBarra);
+
+      if (!codigo) return;
+
+      barcodeInput.value = codigo;
+
+      const produtoExistenteNaLista = produtosVenda.find(
+        (item) => item.codigoBarra === codigo
+      );
+
+      if (produtoExistenteNaLista) {
+        produtoExistenteNaLista.quantidade += 1;
+        renderizarLista();
+        return;
+      }
+
+      const produtoCatalogo = produtosCatalogo[codigo];
+
+      if (!produtoCatalogo) {
+        alert("Produto não encontrado. A proteção real contra SQL injection deve ser feita no backend com queries parametrizadas.");
+        return;
+      }
+
+      produtosVenda.push({
+        codigoBarra: sanitizarEntrada(produtoCatalogo.codigoBarra),
+        nome: sanitizarEntrada(produtoCatalogo.nome),
+        precoUnitario: Number(produtoCatalogo.precoUnitario),
+        quantidade: 1,
+        total: Number(produtoCatalogo.precoUnitario)
+      });
+
+      renderizarLista();
+    }
+
+    function pesquisarProdutoNoEstoque(termo) {
+      const valorPesquisa = sanitizarEntrada(termo);
+
+      if (!valorPesquisa) return;
+
+      searchProductInput.value = valorPesquisa;
+
+      alert("Campo preparado para integração com o backend. A proteção real contra SQL injection precisa ser implementada no servidor.");
+    }
+
+    barcodeInput.addEventListener("input", function () {
+      this.value = sanitizarEntrada(this.value);
+    });
+
+    searchProductInput.addEventListener("input", function () {
+      this.value = sanitizarEntrada(this.value);
+    });
+
+    barcodeInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        adicionarProdutoPorCodigo(barcodeInput.value);
+        barcodeInput.value = "";
+      }
+    });
+
+    searchProductInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        pesquisarProdutoNoEstoque(searchProductInput.value);
+        searchProductInput.value = "";
+      }
+    });
+
+    productList.addEventListener("click", function (event) {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) return;
+
+      const action = target.dataset.action;
+      const index = Number(target.dataset.index);
+
+      if (!action || Number.isNaN(index)) return;
+
+      const produto = produtosVenda[index];
+      if (!produto) return;
+
+      if (action === "increment") {
+        produto.quantidade += 1;
+      }
+
+      if (action === "decrement") {
+        produto.quantidade -= 1;
+        removerProdutoSeQuantidadeZero(index);
+      }
+
+      renderizarLista();
+    });
+
+    productList.addEventListener("input", function (event) {
+      const target = event.target;
+
+      if (!(target instanceof HTMLInputElement)) return;
+
+      const action = target.dataset.action;
+      const index = Number(target.dataset.index);
+
+      if (action !== "manual" || Number.isNaN(index)) return;
+
+      const produto = produtosVenda[index];
+      if (!produto) return;
+
+      let quantidade = parseInt(target.value, 10);
+
+      if (Number.isNaN(quantidade) || quantidade < 0) {
+        quantidade = 0;
+      }
+
+      produto.quantidade = quantidade;
+      removerProdutoSeQuantidadeZero(index);
+      renderizarLista();
+    });
+
+    renderizarLista();
+  </script>
+</body>
+</html>
