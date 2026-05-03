@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil - NextStock PetShop</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-dark: #0d1b2a;
+      --bg-cyan: #00b1b1;
+      --text-dark: #0b2545;
+      --panel: rgba(255, 255, 255, 0.97);
+      --border: #cfd9e3;
+      --shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+      --cyan: #00cfcf;
+      --ok-green: #35a853;
+      --danger: #f44336;
+      --warning: #ffb546;
+      --info: #2196F3;
+      --muted: #607D8B;
+      --gray-dark: #3f3f3f;
+      --soft-bg: #f5f8fb;
+      --sidebar-width: 280px;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--bg-cyan), var(--bg-dark));
+      color: var(--text-dark);
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: 240px;
+      background: #071b31;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 0 18px 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #00cfcf;
+      border-radius: 10px;
+    }
+
+    .sidebar {
+      scrollbar-width: thin;
+      scrollbar-color: #00cfcf rgba(255,255,255,0.08);
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--cyan);
+      font-size: 1.5rem;
+      padding: 0 12px;
+      line-height: 1.3;
+    }
+
+    .menu {
+      list-style: none;
+      width: 100%;
+      padding-bottom: 20px;
+    }
+
+    .menu li {
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      font-size: clamp(15px, 1.2vw, 20px);
+      font-weight: 400;
+    }
+
+    .menu li:hover {
+      background: #00cfcf;
+      color: #0d1b2a;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      font-weight: 400;
+      width: 100%;
+    }
+
+    .menu li.active {
+      background: #00cfcf;
+      color: #0d1b2a;
+      font-weight: 700;
+    }
+
+    /* MAIN */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .main-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.4);
+      border-radius: 10px;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    .page-header h1 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 1rem;
+      font-weight: 400;
+      opacity: 0.95;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 22px;
+    }
+
+    .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 18px;
+      color: var(--text-dark);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    .form-group input,
+    .form-group select,
+    .machine-form input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.95rem;
+      font-weight: 400;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .machine-form input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 207, 207, 0.18);
+    }
+
+    .section-space {
+      margin-top: 24px;
+    }
+
+    .current-plan {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0, 207, 207, 0.14), rgba(13, 27, 42, 0.08));
+      border: 1px solid var(--border);
+    }
+
+    .current-plan strong {
+      display: block;
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .current-plan span {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .badge {
+      background: #071b31;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .plan-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      background: #fff;
+      transition: transform 0.2s, box-shadow 0.2s, border 0.2s;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+      border-color: var(--cyan);
+    }
+
+    .plan-img {
+      min-width: 100px;
+      min-height: 100px;
+      max-width: 300px;
+      max-height: 300px;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--soft-bg);
+    }
+
+    .plan-card h4 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .plan-card p {
+      font-size: 0.92rem;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .plan-price {
+      font-size: 1.15rem;
+      color: var(--text-dark);
+    }
+
+    .machine-list {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .machine-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .machine-list::-webkit-scrollbar-thumb {
+      background: #b5c7d8;
+      border-radius: 8px;
+    }
+
+    .machine-card {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .machine-card:hover {
+      border-color: var(--cyan);
+      background: #f8ffff;
+    }
+
+    .machine-card.selected {
+      border-color: var(--cyan);
+      background: rgba(0, 207, 207, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(0, 207, 207, 0.3);
+    }
+
+    .machine-card h4 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .machine-card p {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .machine-form {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .machine-form-title {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .btn-save {
+      background: var(--ok-green);
+      color: #fff;
+    }
+
+    .btn-delete {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-add {
+      background: var(--info);
+      color: #fff;
+    }
+
+    .helper-text {
+      font-size: 0.88rem;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    /* RESPONSIVO */
+    @media (max-width: 1100px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .plans-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-width: 220px;
+      }
+
+      .main-content {
+        padding: 18px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.full {
+        grid-column: span 1;
+      }
+
+      .current-plan {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .plan-card {
+        grid-template-columns: 1fr;
+      }
+
+      .plan-img {
+        width: 100%;
+        height: 180px;
+        min-width: 100px;
+        min-height: 100px;
+        max-width: 300px;
+        max-height: 300px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        min-width: 100%;
+        height: 260px;
+      }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+
+      .menu li {
+        font-size: 16px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h2>NextStock <br>PetShop</h2>
+      <ul class="menu">
+      <a href="caixa.html"><li>Caixa</li></a>
+      <a href="perfil.html"><li class="active">Perfil</li></a>
+      <a href="guia.html"><li>Guia</li></a>
+      <a href="produtos.html"><li>Produtos</li></a>
+      <a href="pedido.html"><li>Pedidos</li></a>
+      <a href="fornecedor.html"><li>Fornecedores</li></a>
+      <a href="cadastro.html"><li>Cadastro</li></a>
+      <a href="importacao.html"><li>Importação</li></a>
+      <a href="despesas.html"><li>Despesas</li></a>
+      <a href="historico.html"><li>Histórico</li></a>
+      <a href="fechamento.html"><li>Fechamento</li></a>
+      <a href="dashboard.html"><li>Dashboard</li></a>
+      <a href="pagamentos.html"><li>Pagamento</li></a>
+      <a href="funcionario.html"><li>Funcionários</li></a>
+      <a href="ntfe.html"><li>NTF-e</li></a>
+      <a href="notas.html"><li>Notas</li></a>
+      <a href="#"><li>Suporte</li></a>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <section class="page">
+        <div class="page-header">
+          <h1>Perfil da Empresa</h1>
+          <p>Gerencie seus dados, maquininhas cadastradas e plano atual.</p>
+        </div>
+
+        <div class="content-grid">
+          <!-- LADO ESQUERDO -->
+          <div>
+            <div class="card">
+              <h3>Informações da conta</h3>
+
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label for="nomeCompleto">Nome completo</label>
+                  <input type="text" id="nomeCompleto" placeholder="Digite o nome completo" />
+                </div>
+
+                <div class="form-group">
+                  <label for="empresa">Nome da empresa</label>
+                  <input type="text" id="empresa" placeholder="Digite o nome da empresa" />
+                </div>
+
+                <div class="form-group">
+                  <label for="cnpj">CNPJ</label>
+                  <input type="text" id="cnpj" placeholder="00.000.000/0000-00" />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">E-mail</label>
+                  <input type="email" id="email" placeholder="Digite o e-mail" />
+                </div>
+
+                <div class="form-group">
+                  <label for="contato">Contato</label>
+                  <input type="text" id="contato" placeholder="(00) 00000-0000" />
+                </div>
+              </div>
+
+              <div class="btn-group section-space">
+                <button class="btn btn-save">Salvar informações</button>
+              </div>
+            </div>
+
+            <div class="card section-space">
+              <h3>Plano atual</h3>
+
+              <div class="current-plan">
+                <div>
+                  <strong>Você está no plano Ouro</strong>
+                  <span>Acompanhe abaixo as opções disponíveis para upgrade.</span>
+                </div>
+                <div class="badge">Plano atual: Ouro</div>
+              </div>
+
+              <div class="plans-grid">
+                <div class="plan-card">
+                  <img
+                    class="plan-img"
+                    src="img/trofeu-ouro.png"
+                    alt="Imagem do plano Ouro"
+                  />
+
+                  <div>
+                    <h4>Ouro</h4>
+                    <p>Plano ideal para operações essenciais do pet shop com praticidade no dia a dia.</p>
+                    <strong class="plan-price">R$ 200,00</strong>
+                  </div>
+                </div>
+
+                <div class="plan-card">
+                  <img
+                    class="plan-img"
+                    src="img/trofeu-esmeralda.png"
+                    alt="Imagem do plano Esmeralda"
+                  />
+
+                  <div>
+                    <h4>Esmeralda</h4>
+                    <p>Mais recursos para gestão e crescimento, indicado para negócios em expansão.</p>
+                    <strong class="plan-price">R$ 400,00</strong>
+                  </div>
+                </div>
+
+                <div class="plan-card">
+                  <img
+                    class="plan-img"
+                    src="img/trofeu-diamante.png"
+                    alt="Imagem do plano Diamante"
+                  />
+
+                  <div>
+                    <h4>Diamante</h4>
+                    <p>Plano completo para máxima performance, controle e escalabilidade do negócio.</p>
+                    <strong class="plan-price">R$ 600,00</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LADO DIREITO -->
+          <div>
+            <div class="card">
+              <h3>Maquininhas de pagamento</h3>
+              <p class="helper-text">
+                Você pode cadastrar mais de uma maquininha. Ao selecionar um card, os dados ficam prontos para edição.
+              </p>
+
+              <div class="btn-group" style="margin-bottom: 16px;">
+                <button class="btn btn-add">+ Conectar maquininha</button>
+              </div>
+
+              <div class="machine-list">
+                <div class="machine-card selected">
+                  <h4>Stone - Caixa Principal</h4>
+                  <p>Modelo: S920<br>Taxa: 2,99%<br>Status: Ativa</p>
+                </div>
+
+                <div class="machine-card">
+                  <h4>PagSeguro - Banho e Tosa</h4>
+                  <p>Modelo: Moderninha Pro<br>Taxa: 3,19%<br>Status: Ativa</p>
+                </div>
+
+                <div class="machine-card">
+                  <h4>Mercado Pago - Recepção</h4>
+                  <p>Modelo: Point Smart<br>Taxa: 3,49%<br>Status: Inativa</p>
+                </div>
+              </div>
+
+              <div class="machine-form">
+                <div class="machine-form-title">Editar maquininha selecionada</div>
+
+                <input type="text" placeholder="Nome da maquininha / identificação" />
+                <input type="text" placeholder="Empresa / operadora" />
+                <input type="text" placeholder="Modelo" />
+                <input type="text" placeholder="Taxa" />
+                <input type="text" placeholder="Status" />
+
+                <div class="btn-group">
+                  <button class="btn btn-save">Salvar</button>
+                  <button class="btn btn-delete">Apagar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

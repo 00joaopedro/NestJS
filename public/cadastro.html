@@ -491,14 +491,19 @@
       <a href="perfil.html"><li>Perfil</li></a>
       <a href="guia.html"><li>Guia</li></a>
       <a href="produtos.html"><li>Produtos</li></a>
-      <a href="cadastro.html"><li>Cadastro</li></a>
-      <a href="importação.html"><li>Importação</li></a>
-      <a href="saidas.html"><li>Saídas</li></a>
+      <a href="pedido.html"><li>Pedidos</li></a>
+      <a href="fornecedor.html"><li>Fornecedores</li></a>
+      <a href="cadastro.html"><li class="active">Cadastro</li></a>
+      <a href="importacao.html"><li>Importação</li></a>
+      <a href="despesas.html"><li>Despesas</li></a>
       <a href="historico.html"><li>Histórico</li></a>
       <a href="dashboard.html"><li>Dashboard</li></a>
+      <a href="fechamento.html"><li>Fechamento</li></a>
       <a href="pagamentos.html"><li>Pagamento</li></a>
       <a href="funcionario.html"><li>Funcionários</li></a>
-      <a href=""><li>Suporte</li></a>
+      <a href="ntfe.html"><li>NTF-e</li></a>
+      <a href="notas.html"><li>Notas</li></a>
+      <a href="#"><li>Suporte</li></a>
     </ul>
   </aside>
 
@@ -575,7 +580,7 @@
             </div>
           </div>
 
-          <div class="dimensoes-grid">
+          <div class="grid-3">
             <div class="form-group">
               <label for="peso">Peso do Produto</label>
               <input type="text" id="peso" placeholder="Ex: 1,5 kg" maxlength="40">
@@ -589,6 +594,13 @@
             <div class="form-group">
               <label for="largura">Largura do Produto</label>
               <input type="text" id="largura" placeholder="Ex: 15 cm" maxlength="40">
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="linkExterno">Link Externo do Produto</label>
+              <input type="url" id="linkExterno" placeholder="Ex: https://site.com/produto" maxlength="300">
             </div>
           </div>
 
@@ -691,6 +703,7 @@
         peso: "300 g",
         altura: "5 cm",
         largura: "20 cm",
+        linkExterno: "",
         tamanhoRoupa: "M",
         tamanhoVestimenta: "40",
         imagens: ["camisa-polo-azul.jpg", "camisa-polo-detalhe.jpg"]
@@ -710,6 +723,7 @@
         peso: "800 g",
         altura: "14 cm",
         largura: "28 cm",
+        linkExterno: "",
         tamanhoRoupa: "GG",
         tamanhoVestimenta: "42",
         imagens: ["tenis-preto.jpg"]
@@ -775,6 +789,7 @@
         peso: document.getElementById("peso").value,
         altura: document.getElementById("altura").value,
         largura: document.getElementById("largura").value,
+        linkExterno: document.getElementById("linkExterno").value,
         tamanhoRoupa: document.getElementById("tamanhoRoupa").value,
         tamanhoVestimenta: document.getElementById("tamanhoVestimenta").value,
         imagens: imagensSelecionadas.map((imagem) => imagem.nome)
@@ -796,6 +811,7 @@
       document.getElementById("peso").value = produto.peso || "";
       document.getElementById("altura").value = produto.altura || "";
       document.getElementById("largura").value = produto.largura || "";
+      document.getElementById("linkExterno").value = produto.linkExterno || "";
       document.getElementById("tamanhoRoupa").value = produto.tamanhoRoupa || "";
       document.getElementById("tamanhoVestimenta").value = produto.tamanhoVestimenta || "";
 

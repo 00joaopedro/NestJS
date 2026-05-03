@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Pet - NextStock</title>
+  <style>
+    :root {
+      --cyan: #00cfcf;
+      --blue-900: #071b31;
+      --blue-800: #0d1b2a;
+      --panel: #ffffff;
+      --panel-soft: #f5f8fb;
+      --text: #17324d;
+      --muted: #64748b;
+      --border: #dbe5ef;
+      --danger: #e53935;
+      --success: #128c7e;
+      --shadow: 0 10px 30px rgba(7, 27, 49, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      background: linear-gradient(135deg, #0d1b2a, #00cfcf);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    .sidebar {
+      min-width: 14vw;
+      background: #071b31;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding-top: 18px;
+      overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #00cfcf;
+      border-radius: 5px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--cyan);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .menu {
+      list-style: none;
+      padding: 0 8px 18px;
+    }
+
+    .menu li {
+      padding: 13px 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: clamp(14px, 1vw, 20px);
+      border-radius: 8px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .menu li:hover,
+    .menu li.active {
+      background: #00cfcf;
+      color: #0d1b2a;
+      font-weight: 700;
+    }
+
+    .menu a {
+      color: inherit;
+      text-decoration: none;
+      display: block;
+    }
+
+    .main {
+      margin-left: 16vw;
+      min-width: 50vw;
+      flex: 1;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255,255,255,0.45);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left h1 {
+      font-size: 1.55rem;
+      color: var(--blue-900);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .topbar-left p {
+      color: var(--muted);
+      font-size: 0.96rem;
+      font-weight: 600;
+    }
+
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eefaf9;
+      color: #0b3a57;
+      border: 1px solid #caece8;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.97);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .filters-panel {
+      margin-bottom: 18px;
+    }
+
+    .filters-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filters-title h2 {
+      font-size: 1.1rem;
+      color: var(--blue-900);
+      font-weight: 800;
+    }
+
+    .results-count {
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr auto auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(0, 207, 207, 0.12);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #071b31, #00cfcf);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #eaf1f7;
+      color: #16314a;
+    }
+
+    .agenda-panel {
+      margin-bottom: 18px;
+    }
+
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .agenda-card {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .agenda-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(9, 31, 49, 0.08);
+    }
+
+    .agenda-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      background: #e7f0ff;
+      color: #154a9c;
+    }
+
+    .agenda-title {
+      font-size: 1.05rem;
+      color: var(--blue-900);
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .agenda-meta {
+      display: grid;
+      gap: 8px;
+      font-size: 0.93rem;
+    }
+
+    .agenda-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px dashed #d7e2ec;
+      padding-bottom: 6px;
+    }
+
+    .agenda-meta-row span:first-child {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .agenda-meta-row span:last-child {
+      color: var(--text);
+      font-weight: 800;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .agenda-desc {
+      margin-top: auto;
+      background: #f7fbfd;
+      border: 1px solid #e1ebf3;
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 0.94rem;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+      border: 2px dashed #d6e2ec;
+      border-radius: 18px;
+      background: #f8fbfd;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1280px) {
+      .agenda-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filters-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 25%;
+      }
+
+      .main {
+        margin-left: 25%;
+        width: 75%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 0;
+        overflow-y: visible;
+      }
+
+      .sidebar h2 {
+        display: block;
+        font-size: 1.4rem;
+        text-align: center;
+        margin-bottom: 10px;
+        color: #00cfcf;
+      }
+
+      .menu {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 10px 12px;
+      }
+
+      .menu li {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+      }
+
+      .topbar {
+        padding: 16px;
+      }
+
+      .filters-grid,
+      .agenda-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>NextStock</h2>
+    <ul class="menu">
+      <a href="caixa.html"><li>Caixa</li></a>
+      <a href="perfil.html"><li>Perfil</li></a>
+      <a href="agendaPet.html"><li class="active">Agenda</li></a>
+      <a href="clientePet.html"><li>Clientes</li></a>
+      <a href="guia.html"><li>Guia</li></a>
+      <a href="produtos.html"><li>Produtos</li></a>
+      <a href="pedido.html"><li>Pedidos</li></a>
+      <a href="fornecedor.html"><li>Fornecedores</li></a>
+      <a href="cadastro.html"><li>Cadastro</li></a>
+      <a href="importacao.html"><li>Importação</li></a>
+      <a href="despesas.html"><li>Despesas</li></a>
+      <a href="historico.html"><li>Histórico</li></a>
+      <a href="fechamento.html"><li>Fechamento</li></a>
+      <a href="dashboard.html"><li>Dashboard</li></a>
+      <a href="pagamentos.html"><li>Pagamento</li></a>
+      <a href="funcionario.html"><li>Funcionários</li></a>
+      <a href="ntfe.html"><li>NTF-e</li></a>
+      <a href="notas.html"><li>Notas</li></a>
+      <a href="#"><li>Suporte</li></a>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <section class="topbar">
+      <div class="topbar-left">
+        <h1>Agenda Pet</h1>
+        <p>Consulta de atendimentos agendados com filtros por atendente e período.</p>
+      </div>
+
+      <div class="session-badge" id="sessionBadge">Agenda atualizada</div>
+    </section>
+
+    <section class="panel filters-panel">
+      <div class="filters-title">
+        <h2>Filtros da agenda</h2>
+        <div class="results-count" id="resultsCount">0 agendamento(s) encontrado(s)</div>
+      </div>
+
+      <div class="filters-grid">
+        <div class="field">
+          <label for="atendenteSearch">Nome do atendente</label>
+          <input
+            type="text"
+            id="atendenteSearch"
+            maxlength="100"
+            placeholder="Digite o nome do atendente"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="field">
+          <label for="dateFilterType">Filtro de data</label>
+          <select id="dateFilterType">
+            <option value="">Sem filtro</option>
+            <option value="day">Dia</option>
+            <option value="week">Semana</option>
+            <option value="month">Mês</option>
+            <option value="year">Ano</option>
+          </select>
+        </div>
+
+        <div class="field hidden" id="dayField">
+          <label for="dateDay">Selecionar dia</label>
+          <input type="date" id="dateDay">
+        </div>
+
+        <div class="field hidden" id="weekField">
+          <label for="dateWeek">Selecionar semana</label>
+          <input type="week" id="dateWeek">
+        </div>
+
+        <div class="field hidden" id="monthField">
+          <label for="dateMonth">Selecionar mês</label>
+          <input type="month" id="dateMonth">
+        </div>
+
+        <div class="field hidden" id="yearField">
+          <label for="dateYear">Selecionar ano</label>
+          <select id="dateYear"></select>
+        </div>
+
+        <button class="btn btn-primary" id="applyFiltersBtn" type="button">Aplicar filtros</button>
+        <button class="btn btn-secondary" id="clearFiltersBtn" type="button">Limpar</button>
+      </div>
+    </section>
+
+    <section class="panel agenda-panel">
+      <div id="agendaContainer" class="agenda-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const atendimentos = [
+      {
+        id: 1,
+        cliente: "Mariana Oliveira Santos",
+        animal: "Thor",
+        atendente: "Carlos",
+        servico: "Banho e tosa",
+        data: "2026-04-12",
+        hora: "14:00",
+        preco: "85.00",
+        descricao: "Banho completo, tosa higiênica e corte de unhas."
+      },
+      {
+        id: 2,
+        cliente: "Mariana Oliveira Santos",
+        animal: "Luna",
+        atendente: "Fernanda",
+        servico: "Consulta veterinária",
+        data: "2026-04-18",
+        hora: "09:30",
+        preco: "120.00",
+        descricao: "Avaliação geral e acompanhamento anual."
+      },
+      {
+        id: 3,
+        cliente: "João Batista Lima",
+        animal: "Rex",
+        atendente: "Carlos",
+        servico: "Banho",
+        data: "2026-04-20",
+        hora: "10:00",
+        preco: "55.00",
+        descricao: "Banho simples com secagem."
+      },
+      {
+        id: 4,
+        cliente: "Ana Souza",
+        animal: "Mel",
+        atendente: "Juliana",
+        servico: "Tosa",
+        data: "2026-05-03",
+        hora: "15:30",
+        preco: "70.00",
+        descricao: "Tosa completa da raça."
+      },
+      {
+        id: 5,
+        cliente: "Pedro Henrique",
+        animal: "Bidu",
+        atendente: "Carlos",
+        servico: "Consulta veterinária",
+        data: "2026-05-10",
+        hora: "11:15",
+        preco: "130.00",
+        descricao: "Consulta por queda de apetite."
+      }
+    ];
+
+    const atendenteSearch = document.getElementById("atendenteSearch");
+    const dateFilterType = document.getElementById("dateFilterType");
+    const dateDay = document.getElementById("dateDay");
+    const dateWeek = document.getElementById("dateWeek");
+    const dateMonth = document.getElementById("dateMonth");
+    const dateYear = document.getElementById("dateYear");
+
+    const dayField = document.getElementById("dayField");
+    const weekField = document.getElementById("weekField");
+    const monthField = document.getElementById("monthField");
+    const yearField = document.getElementById("yearField");
+
+    const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+    const agendaContainer = document.getElementById("agendaContainer");
+    const resultsCount = document.getElementById("resultsCount");
+
+    function populateYearOptions() {
+      const anos = [...new Set(atendimentos.map(item => new Date(item.data).getFullYear()))].sort((a, b) => a - b);
+      dateYear.innerHTML = '<option value="">Selecione</option>';
+
+      anos.forEach(ano => {
+        const option = document.createElement("option");
+        option.value = ano;
+        option.textContent = ano;
+        dateYear.appendChild(option);
+      });
+    }
+
+    function updateDateFields() {
+      dayField.classList.add("hidden");
+      weekField.classList.add("hidden");
+      monthField.classList.add("hidden");
+      yearField.classList.add("hidden");
+
+      const type = dateFilterType.value;
+
+      if (type === "day") dayField.classList.remove("hidden");
+      if (type === "week") weekField.classList.remove("hidden");
+      if (type === "month") monthField.classList.remove("hidden");
+      if (type === "year") yearField.classList.remove("hidden");
+    }
+
+    function getWeekNumber(date) {
+      const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = tempDate.getUTCDay() || 7;
+      tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+      return weekNo;
+    }
+
+    function renderAgenda(items) {
+      agendaContainer.innerHTML = "";
+
+      resultsCount.textContent = `${items.length} agendamento(s) encontrado(s)`;
+
+      if (!items.length) {
+        agendaContainer.innerHTML = `
+          <div class="empty-state">
+            Nenhum agendamento encontrado com os filtros selecionados.
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "agenda-card";
+
+        card.innerHTML = `
+          <div class="agenda-card-header">
+            <div class="badge">${item.servico}</div>
+          </div>
+
+          <div class="agenda-title">${item.cliente} - ${item.animal}</div>
+
+          <div class="agenda-meta">
+            <div class="agenda-meta-row">
+              <span>Atendente</span>
+              <span>${item.atendente}</span>
+            </div>
+            <div class="agenda-meta-row">
+              <span>Data</span>
+              <span>${formatDateBR(item.data)}</span>
+            </div>
+            <div class="agenda-meta-row">
+              <span>Hora</span>
+              <span>${item.hora}</span>
+            </div>
+            <div class="agenda-meta-row">
+              <span>Preço</span>
+              <span>R$ ${item.preco}</span>
+            </div>
+          </div>
+
+          <div class="agenda-desc">${item.descricao}</div>
+        `;
+
+        agendaContainer.appendChild(card);
+      });
+    }
+
+    function formatDateBR(dateString) {
+      const [year, month, day] = dateString.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function applyFilters() {
+      const atendenteTermo = atendenteSearch.value.trim().toLowerCase();
+      const tipoData = dateFilterType.value;
+
+      let filtrados = [...atendimentos];
+
+      if (atendenteTermo) {
+        filtrados = filtrados.filter(item =>
+          item.atendente.toLowerCase().includes(atendenteTermo)
+        );
+      }
+
+      if (tipoData === "day" && dateDay.value) {
+        filtrados = filtrados.filter(item => item.data === dateDay.value);
+      }
+
+      if (tipoData === "week" && dateWeek.value) {
+        const [weekYear, weekNum] = dateWeek.value.split("-W");
+        filtrados = filtrados.filter(item => {
+          const data = new Date(item.data + "T00:00:00");
+          return String(data.getFullYear()) === weekYear && String(getWeekNumber(data)).padStart(2, "0") === weekNum;
+        });
+      }
+
+      if (tipoData === "month" && dateMonth.value) {
+        filtrados = filtrados.filter(item => item.data.startsWith(dateMonth.value));
+      }
+
+      if (tipoData === "year" && dateYear.value) {
+        filtrados = filtrados.filter(item => new Date(item.data).getFullYear() === Number(dateYear.value));
+      }
+
+      renderAgenda(filtrados);
+    }
+
+    function clearFilters() {
+      atendenteSearch.value = "";
+      dateFilterType.value = "";
+      dateDay.value = "";
+      dateWeek.value = "";
+      dateMonth.value = "";
+      dateYear.value = "";
+      updateDateFields();
+      renderAgenda(atendimentos);
+    }
+
+    dateFilterType.addEventListener("change", updateDateFields);
+    applyFiltersBtn.addEventListener("click", applyFilters);
+    clearFiltersBtn.addEventListener("click", clearFilters);
+
+    populateYearOptions();
+    updateDateFields();
+    renderAgenda(atendimentos);
+  </script>
+</body>
+</html>
